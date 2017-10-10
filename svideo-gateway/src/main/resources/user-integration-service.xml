@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns="http://www.springframework.org/schema/integration"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <gateway id="userGateway"
+             service-interface="com.minori.svideo.rest.gateway.UserGateway"
+             default-reply-timeout="30000">
+        <method name="add" request-channel="user-add-channel"/>
+    </gateway>
+
+    <channel id="user-add-channel"/>
+    <chain input-channel="user-add-channel">
+        <filter ref="dataInputUserValidator" throw-exception-on-rejection="true" method="validateAdd"/>
+        <filter ref="storageProductValidator" throw-exception-on-rejection="true" method="validateAdd"/>
+        <transformer ref="userTransformer" method="convertToEntity"/>
+        <service-activator ref="userService" method="add"/>
+    </chain>
+
+    <!-- filter -->
+    <beans:bean id="dataInputUserValidator"
+                class="com.minori.svideo.rest.filter.input.DataInputUserValidator"/>
+    <beans:bean id="storageProductValidator"
+                class="com.minori.svideo.service.filter.storage.StorageUserValidator"/>
+
+    <beans:bean id="userTransformer"
+                class="com.minori.svideo.service.transformer.impl.UserTransformerImpl"/>
+    <beans:bean id="userService" class="com.minori.svideo.service.business.impl.UserServiceImpl"/>
+</beans:beans>
